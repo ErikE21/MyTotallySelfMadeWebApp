@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <Compile Remove="Angular\**" />
+    <Compile Remove="wwwroot\NewFolder\**" />
     <Content Remove="Angular\**" />
+    <Content Remove="wwwroot\NewFolder\**" />
     <EmbeddedResource Remove="Angular\**" />
+    <EmbeddedResource Remove="wwwroot\NewFolder\**" />
     <None Remove="Angular\**" />
+    <None Remove="wwwroot\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
