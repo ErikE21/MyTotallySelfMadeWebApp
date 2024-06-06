@@ -32,7 +32,7 @@ public class HomeController : Controller
 
         Dictionary<string, Color> TypeColors = new Dictionary<string, Color>
         {
-            { "normal", System.Drawing.ColorTranslator.FromHtml("#A8A77A") },
+            { "normal", System.Drawing.ColorTranslator.FromHtml("#E5E4E2") },
             { "fire", System.Drawing.ColorTranslator.FromHtml("#EE8130") },
             { "water", System.Drawing.ColorTranslator.FromHtml("#6390F0") },
             { "electric", System.Drawing.ColorTranslator.FromHtml("#F7D02C") },
@@ -40,8 +40,8 @@ public class HomeController : Controller
             { "ice", System.Drawing.ColorTranslator.FromHtml("#96D9D6") },
             { "fighting", System.Drawing.ColorTranslator.FromHtml("#C22E28") },
             { "poison", System.Drawing.ColorTranslator.FromHtml("#A33EA1") },
-            { "ground", System.Drawing.ColorTranslator.FromHtml("#E2BF65") },
-            { "flying", System.Drawing.ColorTranslator.FromHtml("#A98FF3") },
+            { "ground", System.Drawing.ColorTranslator.FromHtml("#915121") },
+            { "flying", System.Drawing.ColorTranslator.FromHtml("#91b0fe") },
             { "psychic", System.Drawing.ColorTranslator.FromHtml("#F95587") },
             { "bug", System.Drawing.ColorTranslator.FromHtml("#A6B91A") },
             { "rock", System.Drawing.ColorTranslator.FromHtml("#B6A136") },

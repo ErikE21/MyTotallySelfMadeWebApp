@@ -4,6 +4,7 @@
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
 
 }
+
 <body>
     <div class="text-center">
         <h1 class="display-4"></h1>
@@ -11,18 +12,34 @@
             <table>
                 <tr>
                     <th class="dex-column">Dex Nr.</th>
+                    <th>Artwork</th>
                     <th>Pokemon Name</th>
                     <th>Type(s)</th>
                 </tr>
+                @functions {
+                    private string GetTd(int id, string spriteUrl, string name)
+                    {
+                        return $"<td class='dex-column'>{id}</td><td class='art-column'><img src={spriteUrl} height=50/></td><td class='Name-column'>{name}</td>";
+                    }
+
+                    private string GetTypeColorStyle(Dictionary<string, Color> typeColors, string typeName)
+                    {
+                        if (typeColors.TryGetValue(typeName, out var color))
+                        {
+                            return $"rgba({color.R},{color.G},{color.B},{color.A})";
+                        }
+                        return "transparent";
+                    }
+                }
 
                 @foreach (var pokemon in Model)
                 {
-                    @if (pokemon.Types.Count == 1)
+                    var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, pokemon.Name);
+                    if (pokemon.Types.Count == 1)
                     {
-                        var typeColor = TypeColors.Where(x => x.Key == pokemon.Types[0].Type.Name).FirstOrDefault();
-                        <tr style="background-color: rgba(@typeColor.Value.R,@typeColor.Value.G,@typeColor.Value.B,@typeColor.Value.A);">
-                            <td class="dex-column">@pokemon.Id</td>
-                            <td class="Name-column">@pokemon.Name</td>
+                        var typeColor = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                        <tr style="background-color: @typeColor;">
+                            @Html.Raw(tdContent)
                             <td class="type-column">
                                 @pokemon.Types[0].Type.Name
                             </td>
@@ -30,11 +47,10 @@
                     }
                     else
                     {
-                        var typeColor1 = TypeColors.Where(x => x.Key == pokemon.Types[0].Type.Name).FirstOrDefault();
-                        var typeColor2 = TypeColors.Where(x => x.Key == pokemon.Types[1].Type.Name).FirstOrDefault();
-                        <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, rgba(@typeColor1.Value.R,@typeColor1.Value.G,@typeColor1.Value.B,@typeColor1.Value.A) 0%, rgba(@typeColor2.Value.R,@typeColor2.Value.G,@typeColor2.Value.B,@typeColor2.Value.A) 100%);">
-                            <td class="dex-column">@pokemon.Id</td>
-                            <td class="Name-column">@pokemon.Name</td>
+                        var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                        var typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[1].Type.Name);
+                        <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
+                            @Html.Raw(tdContent)
                             <td class="type-column">
                                 @($"{pokemon.Types[0].Type.Name} + {pokemon.Types[1].Type.Name}")
                             </td>
@@ -78,7 +94,8 @@
         width: 12%;
     }
 
-    .name-column {
+    .art-column {
+        width: 12%;
     }
 
     .type-column {
