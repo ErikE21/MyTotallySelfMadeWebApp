@@ -1,0 +1,46 @@
+﻿<head>
+    <style>
+        .button {
+            display: inline-block;
+            padding: 15px 25px;
+            font-size: 24px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            outline: none;
+            color: #fff;
+            background-color: #04AA6D;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 9px #999;
+        }
+
+            .button:hover {
+                background-color: #3e8e41
+            }
+
+            .button:active {
+                background-color: #3e8e41;
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+
+        body {
+            text-align:center
+        }
+    </style>
+</head>
+<body>
+    <h1> Welcome to my WebApp!</h1>
+    <div>
+        <p style="color: red"> Once you click on the pokemon button it will take 30 - 60 seconds to load!</p>
+        <form>
+            <button id="oneTap" asp-action="GetPokemonData" onclick="disableButton(this)" class="button"> Pokemon!</button>
+        </form>
+    </div>
+    <script>
+        function disableButton(btn) {
+            btn.innerHTML = "Processing...";
+        }
+    </script>
+</body>

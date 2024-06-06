@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Angular\**" />
+    <Content Remove="Angular\**" />
+    <EmbeddedResource Remove="Angular\**" />
+    <None Remove="Angular\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\3rdpartylicenses.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PokeApiNet\PokeApiNet.csproj" />
+  </ItemGroup>
+
+</Project>
