@@ -2,62 +2,191 @@
 @model List<PokeApiNet.Pokemon>
 @{
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
-
+    var routeId = (int)ViewData["id"];
+    if (routeId == 0) { routeId = 1; }
+    var team = ViewBag.Team as List<PokeApiNet.Pokemon>;
 }
 
+@functions {
+    private string GetTd(int id, string spriteUrl, string name)
+    {
+        return $"<td class='dex-column'>{id}</td><td class='art-column'><img src={spriteUrl} height=50/></td><td class='Name-column'>{name}</td>";
+    }
+
+    private string GetTypeColorStyle(Dictionary<string, Color> typeColors, string typeName)
+    {
+        if (typeColors.TryGetValue(typeName, out var color))
+        {
+            return $"rgba({color.R},{color.G},{color.B},{color.A})";
+        }
+        return "transparent";
+    }
+}
 <body>
+
     <div class="text-center">
         <h1 class="display-4"></h1>
-        <div class="table-container">
+        <div class="fixed-table-container">
+            @if (team is not null && team.Count > 0)
+            {
+                <table class="fixed-table">
+                    <tr>
+                        <th style="width:10%">Team</th>
+                        <th>Name</th>
+                        <th>Ability</th>
+                        <th style="width:10%">Remove</th>
+                    </tr>
+                    @{
+                        int i = 0;
+                    }
+                    @foreach (var pokemon in team)
+                    {
+                        var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                        var typeColor2 = "transparent";
+                        if (pokemon.Types.Count == 1)
+                        {
+                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                        }
+                        else
+                        {
+                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[1].Type.Name);
+
+                        }
+                        <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
+                            <td><img src=@pokemon.Sprites.Versions.GenerationVIII.Icons.FrontDefault height=50 /></td>
+                            <td>@pokemon.Name</td>
+                            <td>@pokemon.Abilities[0].Ability.Name</td>
+                            <td style="text-align: center;">
+                                <form method='post' asp-action='RemoveFromTeam'>
+                                    <input type='hidden' name='id' value='@i' />
+                                    <input type='hidden' name='pageId' value='@routeId' />
+                                    <button type='submit' style='border: none; background: none; padding: 0;'>
+                                        <img src='~/images/delete_icon.png' height='25' />
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </table>
+            }
+        </div>
+        <div class="table-container" style="border-collapse: collapse;width: auto;">
             <table>
+
                 <tr>
                     <th class="dex-column">Dex Nr.</th>
                     <th>Artwork</th>
                     <th>Pokemon Name</th>
                     <th>Type(s)</th>
+                    <th>Add to team</th>
                 </tr>
-                @functions {
-                    private string GetTd(int id, string spriteUrl, string name)
-                    {
-                        return $"<td class='dex-column'>{id}</td><td class='art-column'><img src={spriteUrl} height=50/></td><td class='Name-column'>{name}</td>";
-                    }
-
-                    private string GetTypeColorStyle(Dictionary<string, Color> typeColors, string typeName)
-                    {
-                        if (typeColors.TryGetValue(typeName, out var color))
-                        {
-                            return $"rgba({color.R},{color.G},{color.B},{color.A})";
-                        }
-                        return "transparent";
-                    }
-                }
-
                 @foreach (var pokemon in Model)
                 {
                     var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, pokemon.Name);
+                    var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                    var typeColor2 = "transparent";
+                    var imgUrl1 = Url.Content($"~/images/{pokemon.Types[0].Type.Name.ToLower()}.png");
+                    var imgUrl2 = Url.Content("");
                     if (pokemon.Types.Count == 1)
                     {
-                        var typeColor = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
-                        <tr style="background-color: @typeColor;">
-                            @Html.Raw(tdContent)
-                            <td class="type-column">
-                                @pokemon.Types[0].Type.Name
-                            </td>
-                        </tr>
+                        typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
                     }
                     else
                     {
-                        var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
-                        var typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[1].Type.Name);
-                        <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
-                            @Html.Raw(tdContent)
-                            <td class="type-column">
-                                @($"{pokemon.Types[0].Type.Name} + {pokemon.Types[1].Type.Name}")
-                            </td>
-                        </tr>
+                        typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[1].Type.Name);
+                        imgUrl2 = Url.Content($"~/images/{pokemon.Types[1].Type.Name.ToLower()}.png");
+
                     }
+                    <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
+                        @Html.Raw(tdContent)
+                        <td class="type-column">
+                            @{
+                                var imgUrl = Url.Content($"~/images/{pokemon.Types[0].Type.Name.ToLower()}.png");
+                            }
+                            <img src="@imgUrl1" height="20" />
+                            <img src="@imgUrl2" height="20" />
+                        </td>
+                        <td class='team-column'>
+                            <form method='post' asp-action='AddToTeam'>
+                                <input type='hidden' name='id' value='@pokemon.Id' />
+                                <input type='hidden' name='pageId' value='@routeId' />
+                                <button type='submit' style='border: none; background: none; padding: 0;'>
+                                    <img src='~/images/pokeballAdd.png' height='25' />
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                 }
             </table>
+
+        </div>
+        <div style="display: inline-block">
+            <form>
+                @if (routeId <= 1)
+                {
+                    <button asp-route-id="1" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>1</u></button>
+                }
+                else
+                {
+                    <button asp-route-id="1" asp-action="GetPokemonData" class="button">1</button>
+                }
+                @if (routeId < 5)
+                {
+                    @for (int i = 2; i < 7; i++)
+                    {
+                        if (i == routeId)
+                        {
+                            <button asp-route-id="@i" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>@i</u></button>
+                        }
+                        else
+                        {
+                            <button asp-route-id="@i" asp-action="GetPokemonData" class="button">@i</button>
+                        }
+
+                    }
+                    <a>...</a>
+                }
+                else if (routeId > 36)
+                {
+                    <a>...</a>
+                    @for (int i = 36; i < 41; i++)
+                    {
+                        if (i == routeId)
+                        {
+                            <button asp-route-id="@i" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>@i</u></button>
+                        }
+                        else
+                        {
+                            <button asp-route-id="@i" asp-action="GetPokemonData" class="button">@i</button>
+                        }
+                    }
+                }
+                else
+                {
+                    <a>...</a>
+                    @for (int i = (routeId - 3); i < routeId; i++)
+                    {
+                        <button asp-route-id="@i" asp-action="GetPokemonData" class="button">@i</button>
+                    }
+
+                    <button asp-route-id="@routeId" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>@routeId</u></button>
+
+                    @for (int i = (routeId + 1); i < (routeId + 4); i++)
+                    {
+                        <button asp-route-id="@i" asp-action="GetPokemonData" class="button">@i</button>
+                    }
+                    <a>...</a>
+                }
+                @if (routeId == 41)
+                {
+                    <button asp-route-id="41" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>41</u></button>
+                }
+                else
+                {
+                    <button asp-route-id="41" asp-action="GetPokemonData" class="button">41</button>
+                }
+            </form>
         </div>
     </div>
 </body>
@@ -75,10 +204,6 @@
         width: 100%;
     }
 
-    table {
-        border-collapse: collapse;
-        width: 50%;
-    }
 
     th, td {
         border: 1px solid black;
@@ -91,20 +216,71 @@
     }
 
     .dex-column {
-        width: 12%;
+        width: 8%;
     }
 
     .art-column {
         width: 12%;
+        text-align: center;
     }
 
     .type-column {
-        width: 25%;
+        width: 22%;
+        text-align: center;
+    }
+
+    .team-column {
+        width: 12%;
+        text-align: center;
     }
 
     body {
         background-image: url('/images/pokewall.jpg');
         background-size: cover;
         background-attachment: fixed;
+    }
+
+    .button {
+        background-color: #e7e7e7;
+        color: black;
+        border: none;
+        padding: 5px 16px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        margin: 4px 0px;
+        cursor: pointer;
+    }
+
+    .fixed-table-container {
+        position: fixed;
+        top: 30%;
+        left: 10%;
+        width: 20%;
+        background-color: white;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .fixed-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .fixed-table th, .fixed-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .fixed-table th {
+            background-color: #f2f2f2;
+            position: sticky; /* Ensure the headers stick at the top of the table section */
+            top: 0;
+            z-index: 1; /* Ensure headers stay above table content */
+        }
+
+    .content {
+        margin-top: 100px; /* Adjust this value based on your fixed table height */
     }
 </style>
