@@ -1,0 +1,15 @@
+﻿@model AppModels.Models.yourPokemon
+
+<head>
+    <link rel="stylesheet" href="/css/StyleSheet.css">
+</head>
+<body>
+    @if (Model is not null)
+    {
+        <h1>Edit @Model.pokemon.Name</h1>
+        <form>
+            <input value="@Model.nickname" asp-for="@Model.nickname"></input>
+            <button type="submit" asp-action="SaveEdit">Opslaan</button>
+        </form>
+    }
+</body>

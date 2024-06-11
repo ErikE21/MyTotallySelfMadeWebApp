@@ -1,10 +1,10 @@
 ﻿@using System.Drawing
-@model List<PokeApiNet.Pokemon>
+@model AppModels.Models.AllThePokes
 @{
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
     var routeId = (int)ViewData["id"];
     if (routeId == 0) { routeId = 1; }
-    var team = ViewBag.Team as List<PokeApiNet.Pokemon>;
+    var team = Model.yourPokemon;
 }
 
 @functions {
@@ -22,6 +22,9 @@
         return "transparent";
     }
 }
+<head>
+    <link rel="stylesheet" href="/css/StyleSheet.css">
+</head>
 <body>
 
     <div class="text-center">
@@ -41,25 +44,44 @@
                     }
                     @foreach (var pokemon in team)
                     {
-                        var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                        var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[0].Type.Name);
                         var typeColor2 = "transparent";
-                        if (pokemon.Types.Count == 1)
+                        if (pokemon.pokemon.Types.Count == 1)
                         {
-                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
+                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[0].Type.Name);
                         }
                         else
                         {
-                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.Types[1].Type.Name);
+                            typeColor2 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[1].Type.Name);
 
                         }
                         <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
-                            <td><img src=@pokemon.Sprites.Versions.GenerationVIII.Icons.FrontDefault height=50 /></td>
-                            <td>@pokemon.Name</td>
-                            <td>@pokemon.Abilities[0].Ability.Name</td>
+                            <td><img src=@pokemon.pokemon.Sprites.Versions.GenerationVIII.Icons.FrontDefault height=50 /></td>
+                            @if (pokemon.nickname is not null or "")
+                            {
+                                <td>@(pokemon.nickname[0].ToString().ToUpper() + pokemon.nickname.Substring(1))
+                                    @if (pokemon.shiny)
+                                    {
+                                        <img src="~/images/shiny.png" height="15" />
+                                    }
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    @(pokemon.pokemon.Name[0].ToString().ToUpper() + pokemon.pokemon.Name.Substring(1))
+                                    @if (pokemon.shiny)
+                                    {
+                                        <img src="~/images/shiny.png" height="20" />
+                                    }
+                                </td>
+                            }
+                            <td>@(pokemon.ability[0].ToString().ToUpper() + pokemon.ability.Substring(1))</td>
                             <td style="text-align: center;">
                                 <form method='post' asp-action='RemoveFromTeam'>
                                     <input type='hidden' name='id' value='@i' />
                                     <input type='hidden' name='pageId' value='@routeId' />
+                                    <input type='hidden' name='returnPage' value='list' />
                                     <button type='submit' style='border: none; background: none; padding: 0;'>
                                         <img src='~/images/delete_icon.png' height='25' />
                                     </button>
@@ -81,9 +103,9 @@
                     <th>Type(s)</th>
                     <th>Add to team</th>
                 </tr>
-                @foreach (var pokemon in Model)
+                @foreach (var pokemon in Model.inPagePokemon)
                 {
-                    var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, pokemon.Name);
+                    var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, (pokemon.Name[0].ToString().ToUpper() + pokemon.Name.Substring(1)));
                     var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
                     var typeColor2 = "transparent";
                     var imgUrl1 = Url.Content($"~/images/{pokemon.Types[0].Type.Name.ToLower()}.png");
@@ -191,55 +213,6 @@
     </div>
 </body>
 <style>
-    .text-center {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .table-container {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-    }
-
-
-    th, td {
-        border: 1px solid black;
-        padding: 8px;
-        text-align: left;
-    }
-
-    th {
-        background-color: #f2f2f2;
-    }
-
-    .dex-column {
-        width: 8%;
-    }
-
-    .art-column {
-        width: 12%;
-        text-align: center;
-    }
-
-    .type-column {
-        width: 22%;
-        text-align: center;
-    }
-
-    .team-column {
-        width: 12%;
-        text-align: center;
-    }
-
-    body {
-        background-image: url('/images/pokewall.jpg');
-        background-size: cover;
-        background-attachment: fixed;
-    }
-
     .button {
         background-color: #e7e7e7;
         color: black;
@@ -254,8 +227,8 @@
 
     .fixed-table-container {
         position: fixed;
-        top: 30%;
-        left: 10%;
+        top: 25%;
+        left: 5%;
         width: 20%;
         background-color: white;
         z-index: 1000;
@@ -275,12 +248,12 @@
 
         .fixed-table th {
             background-color: #f2f2f2;
-            position: sticky; /* Ensure the headers stick at the top of the table section */
+            position: sticky;
             top: 0;
-            z-index: 1; /* Ensure headers stay above table content */
+            z-index: 1;
         }
 
     .content {
-        margin-top: 100px; /* Adjust this value based on your fixed table height */
+        margin-top: 100px;
     }
 </style>

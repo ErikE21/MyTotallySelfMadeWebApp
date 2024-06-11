@@ -1,0 +1,108 @@
+﻿@using System.Drawing
+@model List<AppModels.Models.yourPokemon>
+@{
+    var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
+}
+<head>
+    <link rel="stylesheet" href="/css/StyleSheet.css">
+</head>
+<body>
+    @functions {
+        private string GetTd(int id, string spriteUrl, string name)
+        {
+            return $"<td class='art-column'><img src={spriteUrl} height=150/></td>" +
+            $"<td class='Name-column' width: 15%'>{name}</td>";
+        }
+
+        private string GetTypeColorStyle(Dictionary<string, Color> typeColors, string typeName)
+        {
+            if (typeColors.TryGetValue(typeName, out var color))
+            {
+                return $"rgba({color.R},{color.G},{color.B},{color.A})";
+            }
+            return "transparent";
+        }
+    }
+    @if (Model.Count == 0 || Model is null)
+    {
+        <h1>Your team has no pokemon</h1>
+    }
+    else
+    {
+        <div class="text-center" style="border-collapse: collapse;width: auto;">
+            <table>
+                <tr>
+                    <th>Artwork</th>
+                    <th>(Nick)Name</th>
+                    <th>Type(s)</th>
+                    <th>Ability</th>
+                    <th>IVs</th>
+                    <th>Edit Details</th>
+                    <th>Remove</th>
+                </tr>
+                @{
+                    int i = 0;
+                }
+                @foreach (var pokemon in Model)
+                {
+                    string spriteURL = pokemon.pokemon.Sprites.Other.OfficialArtwork.FrontDefault;
+                    if (pokemon.shiny)
+                    {
+                        spriteURL = pokemon.pokemon.Sprites.Other.OfficialArtwork.FrontShiny;
+                    }
+                    var tdContent = GetTd(pokemon.pokemon.Id, spriteURL, (pokemon.pokemon.Name[0].ToString().ToUpper() + pokemon.pokemon.Name.Substring(1)));
+                    var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[0].Type.Name);
+                    var typeColor2 = "transparent";
+                    var imgUrl1 = Url.Content($"~/images/{pokemon.pokemon.Types[0].Type.Name.ToLower()}.png");
+                    var imgUrl2 = Url.Content("");
+                    if (pokemon.pokemon.Types.Count == 1)
+                    {
+                        typeColor2 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[0].Type.Name);
+                    }
+                    else
+                    {
+                        typeColor2 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[1].Type.Name);
+                        imgUrl2 = Url.Content($"~/images/{pokemon.pokemon.Types[1].Type.Name.ToLower()}.png");
+
+                    }
+                    <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);font-size:x-large;">
+                        @Html.Raw(tdContent)
+                        <td class="type-column">
+                            @{
+                                var imgUrl = Url.Content($"~/images/{pokemon.pokemon.Types[0].Type.Name.ToLower()}.png");
+                            }
+                            <img src="@imgUrl1" height="30" />
+                            <img src="@imgUrl2" height="30" />
+                        </td>
+                        <td>@(pokemon.ability[0].ToString().ToUpper() + pokemon.ability.Substring(1))</td>
+                        <td>
+                            @foreach (var value in pokemon.IVs)
+                            {
+                                <p> @($"{value.Key}: {value.Value}/31")</p>
+                            }
+                        </td>
+                        <td>
+                            <form asp-action='EditPoke'>
+                                <input type='hidden' name='id' value='@i' />
+                                <button type='submit' style='border: none; background: none; padding: 0;'>
+                                    <img src='~/images/edit.png' height='40' />
+                                </button>
+
+                            </form>
+                        </td>
+                        <td>
+                            <form method="post" asp-action='RemoveFromTeam'>
+                                <input type='hidden' name='id' value='@i' />
+                                <input type='hidden' name='returnPage' value='team' />
+                                <button type='submit' style='border: none; background: none; padding: 0;'>
+                                    <img src='~/images/delete_icon.png' height='40' />
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            </table>
+        </div>
+    }
+</body>

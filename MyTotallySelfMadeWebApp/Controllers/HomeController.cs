@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using MyTotallySelfMadeWebApp.Models;
 using System.Diagnostics;
 using PokeApiNet;
-using System.Collections.ObjectModel;
 using System.Drawing;
 using Newtonsoft.Json;
+using AppModels.Models;
 
 namespace MyTotallySelfMadeWebApp.Controllers;
 public class HomeController : Controller
@@ -22,7 +22,51 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        Dictionary<string, Color> TypeColors = new Dictionary<string, Color>
+        {
+            { "normal", System.Drawing.ColorTranslator.FromHtml("#a0a2a0") },
+            { "fire", System.Drawing.ColorTranslator.FromHtml("#e72324") },
+            { "water", System.Drawing.ColorTranslator.FromHtml("#2481ef") },
+            { "electric", System.Drawing.ColorTranslator.FromHtml("#fac100") },
+            { "grass", System.Drawing.ColorTranslator.FromHtml("#3da224") },
+            { "ice", System.Drawing.ColorTranslator.FromHtml("#3dd9ff") },
+            { "fighting", System.Drawing.ColorTranslator.FromHtml("#ff8100") },
+            { "poison", System.Drawing.ColorTranslator.FromHtml("#913ecd") },
+            { "ground", System.Drawing.ColorTranslator.FromHtml("#92501b") },
+            { "flying", System.Drawing.ColorTranslator.FromHtml("#82baef") },
+            { "psychic", System.Drawing.ColorTranslator.FromHtml("#ef3f7a") },
+            { "bug", System.Drawing.ColorTranslator.FromHtml("#92a212") },
+            { "rock", System.Drawing.ColorTranslator.FromHtml("#b0ab82") },
+            { "ghost", System.Drawing.ColorTranslator.FromHtml("#713f71") },
+            { "dragon", System.Drawing.ColorTranslator.FromHtml("#4f61e2") },
+            { "dark", System.Drawing.ColorTranslator.FromHtml("#4f3f3d") },
+            { "steel", System.Drawing.ColorTranslator.FromHtml("#60a2b9") },
+            { "fairy", System.Drawing.ColorTranslator.FromHtml("#f171f1") }
+        };
+        var colorsJson = _httpContextAccessor.HttpContext.Session.GetString("colors");
+        if (string.IsNullOrEmpty(colorsJson))
+        {
+            _httpContextAccessor.HttpContext.Session.SetString("colors", JsonConvert.SerializeObject(TypeColors));
+        }
         return View();
+    }
+
+    public IActionResult Team()
+    {
+        var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
+        List<yourPokemon> team;
+        if (string.IsNullOrEmpty(teamJson))
+        {
+            team = new List<yourPokemon>();
+            _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(team));
+        }
+        else
+        {
+            team = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
+        }
+        var TypeColors = _httpContextAccessor.HttpContext.Session.GetString("colors");
+        ViewBag.TypeColors = JsonConvert.DeserializeObject<Dictionary<string, Color>>(TypeColors);
+        return View(team);
     }
 
     public async Task<IActionResult> GetPokemonData(int id)
@@ -52,43 +96,25 @@ public class HomeController : Controller
         }).ToList();
         var PokesList = (await Task.WhenAll(tasks)).ToList();
 
-        Dictionary<string, Color> TypeColors = new Dictionary<string, Color>
-        {
-            { "normal", System.Drawing.ColorTranslator.FromHtml("#a0a2a0") },
-            { "fire", System.Drawing.ColorTranslator.FromHtml("#e72324") },
-            { "water", System.Drawing.ColorTranslator.FromHtml("#2481ef") },
-            { "electric", System.Drawing.ColorTranslator.FromHtml("#fac100") },
-            { "grass", System.Drawing.ColorTranslator.FromHtml("#3da224") },
-            { "ice", System.Drawing.ColorTranslator.FromHtml("#3dd9ff") },
-            { "fighting", System.Drawing.ColorTranslator.FromHtml("#ff8100") },
-            { "poison", System.Drawing.ColorTranslator.FromHtml("#913ecd") },
-            { "ground", System.Drawing.ColorTranslator.FromHtml("#92501b") },
-            { "flying", System.Drawing.ColorTranslator.FromHtml("#82baef") },
-            { "psychic", System.Drawing.ColorTranslator.FromHtml("#ef3f7a") },
-            { "bug", System.Drawing.ColorTranslator.FromHtml("#92a212") },
-            { "rock", System.Drawing.ColorTranslator.FromHtml("#b0ab82") },
-            { "ghost", System.Drawing.ColorTranslator.FromHtml("#713f71") },
-            { "dragon", System.Drawing.ColorTranslator.FromHtml("#4f61e2") },
-            { "dark", System.Drawing.ColorTranslator.FromHtml("#4f3f3d") },
-            { "steel", System.Drawing.ColorTranslator.FromHtml("#60a2b9") },
-            { "fairy", System.Drawing.ColorTranslator.FromHtml("#f171f1") }
-        };
-        ViewBag.TypeColors = TypeColors;
+        var TypeColors = _httpContextAccessor.HttpContext.Session.GetString("colors");
+        ViewBag.TypeColors = JsonConvert.DeserializeObject<Dictionary<string, Color>>(TypeColors);
         ViewData["id"] = id;
+        AllThePokes page = new();
 
         var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
-        List<Pokemon> team;
+        List<yourPokemon> team;
         if (string.IsNullOrEmpty(teamJson))
         {
-            team = new List<Pokemon>();
+            team = new List<yourPokemon>();
         }
         else
         {
-            team = JsonConvert.DeserializeObject<List<Pokemon>>(teamJson);
+            team = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
+            page.yourPokemon = team;
         }
-        ViewBag.Team = team;
+        page.inPagePokemon = PokesList;
 
-        return View("AllPokemon", PokesList);
+        return View("AllPokemon", page);
     }
 
     [HttpPost]
@@ -96,38 +122,76 @@ public class HomeController : Controller
     {
         Pokemon poke = await _pokeClient.GetResourceAsync<Pokemon>(id);
         var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
-        List<Pokemon> team;
+        List<yourPokemon> team;
         if (string.IsNullOrEmpty(teamJson))
         {
-            team = new List<Pokemon>();
+            team = new List<yourPokemon>();
         }
         else
         {
-            team = JsonConvert.DeserializeObject<List<Pokemon>>(teamJson);
+            team = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
         }
 
         if (team.Count < 6)
         {
-            team.Add(poke);
+            yourPokemon yourPoke = new yourPokemon();
+            yourPoke.pokemon = poke;
+            yourPoke.ability = poke.Abilities.FirstOrDefault().Ability.Name;
+            var rnd = new Random();
+            if (rnd.Next(1, 100) == 1)
+            {
+                yourPoke.shiny = true;
+            }
+            else { yourPoke.shiny = false; }
+            Dictionary<string, int> IVs = new Dictionary<string, int> {
+            { "HP", rnd.Next(0,31) },
+            { "Attack", rnd.Next(0,31) },
+            { "Defense", rnd.Next(0,31) },
+            { "Sp. Atk", rnd.Next(0,31) },
+            { "Sp. Def", rnd.Next(0,31) },
+            { "Speed", rnd.Next(0,31) }
+        };
+            yourPoke.IVs = IVs;
+            team.Add(yourPoke);
             _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(team));
         }
         return RedirectToAction("GetPokemonData", new { id = pageId });
     }
 
     [HttpPost]
-    public IActionResult RemoveFromTeam(int id, int pageId)
+    public IActionResult RemoveFromTeam(int id, int pageId, string returnPage)
     {
         var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
-        List<Pokemon> team;
-        team = JsonConvert.DeserializeObject<List<Pokemon>>(teamJson);
+        List<yourPokemon> team;
+        team = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
         team.Remove(team[id]);
         _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(team));
+        switch (returnPage)
+        {
+            case "team":
+                return RedirectToAction("Team");
+            case "list":
+                return RedirectToAction("GetPokemonData", new { id = pageId });
+                break;
+            case null:
+                return RedirectToAction("GetPokemonData", new { id = pageId });
+                break;
+
+        }
         return RedirectToAction("GetPokemonData", new { id = pageId });
     }
 
-    public IActionResult Privacy()
+    public IActionResult EditPoke(int id)
     {
-        return View();
+        var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
+        List<yourPokemon> yourPoke = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
+        return View(yourPoke[id]);
+    }
+
+    public IActionResult SaveEdit()
+    {
+
+        return RedirectToAction("Team");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
