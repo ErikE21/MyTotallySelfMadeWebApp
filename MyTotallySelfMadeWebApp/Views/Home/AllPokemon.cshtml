@@ -1,4 +1,5 @@
 ﻿@using System.Drawing
+@using static AppModels.Models.StringExtensions
 @model AppModels.Models.AllThePokes
 @{
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
@@ -56,10 +57,22 @@
 
                         }
                         <tr style="background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%);">
-                            <td><img src=@pokemon.pokemon.Sprites.Versions.GenerationVIII.Icons.FrontDefault height=50 /></td>
-                            @if (pokemon.nickname is not null or "")
+                            @{
+                                var teamSprite = pokemon.pokemon.Sprites.Versions.GenerationVIII.Icons.FrontDefault;
+                            }
+                            @if (string.IsNullOrEmpty(teamSprite))
                             {
-                                <td>@(pokemon.nickname[0].ToString().ToUpper() + pokemon.nickname.Substring(1))
+                                teamSprite = pokemon.pokemon.Sprites.Versions.GenerationVII.Icons.FrontDefault;
+                                teamSprite = pokemon.pokemon.Sprites.Versions.GenerationVI.OmegaRubyAlphaSapphire.FrontDefault;
+                                teamSprite = pokemon.pokemon.Sprites.Versions.GenerationVI.XY.FrontDefault;
+                                teamSprite = pokemon.pokemon.Sprites.Versions.GenerationV.BlackWhite.FrontDefault;
+                                teamSprite = pokemon.pokemon.Sprites.FrontDefault;
+                            }
+                            <td><img src=@teamSprite height=50 /></td>
+                            @if (!string.IsNullOrEmpty(pokemon.nickname))
+                            {
+                                <td>
+                                    @(pokemon.nickname)
                                     @if (pokemon.shiny)
                                     {
                                         <img src="~/images/shiny.png" height="15" />
@@ -69,7 +82,7 @@
                             else
                             {
                                 <td>
-                                    @(pokemon.pokemon.Name[0].ToString().ToUpper() + pokemon.pokemon.Name.Substring(1))
+                                    @(pokemon.pokemon.Name.Capitalize())
                                     @if (pokemon.shiny)
                                     {
                                         <img src="~/images/shiny.png" height="20" />
@@ -105,7 +118,7 @@
                 </tr>
                 @foreach (var pokemon in Model.inPagePokemon)
                 {
-                    var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, (pokemon.Name[0].ToString().ToUpper() + pokemon.Name.Substring(1)));
+                    var tdContent = GetTd(pokemon.Id, pokemon.Sprites.Other.OfficialArtwork.FrontDefault, pokemon.Name.Capitalize());
                     var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.Types[0].Type.Name);
                     var typeColor2 = "transparent";
                     var imgUrl1 = Url.Content($"~/images/{pokemon.Types[0].Type.Name.ToLower()}.png");
@@ -127,7 +140,10 @@
                                 var imgUrl = Url.Content($"~/images/{pokemon.Types[0].Type.Name.ToLower()}.png");
                             }
                             <img src="@imgUrl1" height="20" />
-                            <img src="@imgUrl2" height="20" />
+                            @if (pokemon.Types.Count >= 2)
+                            {
+                                <img src="@imgUrl2" height="20" />
+                            }
                         </td>
                         <td class='team-column'>
                             <form method='post' asp-action='AddToTeam'>

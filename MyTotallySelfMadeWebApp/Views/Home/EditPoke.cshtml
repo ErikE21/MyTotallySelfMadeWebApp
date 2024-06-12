@@ -1,15 +1,148 @@
-﻿@model AppModels.Models.yourPokemon
-
+﻿@using System.Drawing
+@using static AppModels.Models.StringExtensions
+@model AppModels.Models.yourPokemon
+@{
+    var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
+}
 <head>
     <link rel="stylesheet" href="/css/StyleSheet.css">
 </head>
-<body>
-    @if (Model is not null)
+@functions {
+    private string GetOptions(PokeApiNet.PokemonMove move)
     {
-        <h1>Edit @Model.pokemon.Name</h1>
-        <form>
-            <input value="@Model.nickname" asp-for="@Model.nickname"></input>
-            <button type="submit" asp-action="SaveEdit">Opslaan</button>
-        </form>
+        string moveName = move.Move.Name.Replace("-", " ")[0].ToString().ToUpper() + move.Move.Name.Replace("-", " ").Substring(1);
+        return $"<option value='{moveName}'>{moveName}</option>";
     }
+    private string GetTypeColorStyle(Dictionary<string, Color> typeColors, string typeName)
+    {
+        if (typeColors.TryGetValue(typeName, out var color))
+        {
+            return $"rgba({color.R},{color.G},{color.B},{color.A})";
+        }
+        return "transparent";
+    }
+}
+<body>
+    @{
+        var typeColor1 = GetTypeColorStyle(TypeColors, Model.pokemon.Types[0].Type.Name);
+        var typeColor2 = "transparent";
+        if (Model.pokemon.Types.Count == 1)
+        {
+            typeColor2 = GetTypeColorStyle(TypeColors, Model.pokemon.Types[0].Type.Name);
+        }
+        else
+        {
+            typeColor2 = GetTypeColorStyle(TypeColors, Model.pokemon.Types[1].Type.Name);
+
+        }
+    }
+    <div style="background-color:white;background-color: #D9AFD9;background-image: linear-gradient(45deg, @typeColor1 0%, @typeColor2 100%); width:fit-content; text-align:center; margin:auto;border:groove,thick">
+        @if (Model is not null)
+        {
+            if (Model.shiny)
+            {
+                <img class="art" src=@Model.pokemon.Sprites.Other.OfficialArtwork.FrontShiny />
+            }
+            else
+            {
+                <img class="art" src=@Model.pokemon.Sprites.Other.OfficialArtwork.FrontDefault />
+            }
+
+            if (!string.IsNullOrEmpty(Model.nickname))
+            {
+                <h1>@Model.nickname</h1>
+                <h3>(@(Model.pokemon.Name.Capitalize()))</h3>
+            }
+            else
+            {
+                <h1>@(Model.pokemon.Name.Capitalize())</h1>
+            }
+            <br />
+            <form>
+                <label for="Nickname">Give your pokemon a nickname! (Max 16 characters) <br />
+                    Leave it empty reset to their original name.</label>
+                <br />
+                <br />
+                <input value="@Model.nickname" asp-for="@Model.nickname" id="Nickname"></input>
+                <input hidden value="@Model.teamPosition" asp-for="@Model.teamPosition"></input>
+                <br />
+                <br />
+                <br />
+                <label for="move1">Move 1</label>
+                <select  asp-for="@Model.moves[0]" id="move1">
+                    @if (string.IsNullOrEmpty(Model.moves[0]))
+                    {
+                        <option value=@Model.moves[0]>N/A</option>
+                    }
+                    else
+                    {
+                        <option value=@Model.moves[0]>@Model.moves[0]</option>
+                        <option value="@null">N/A</option>
+                    }
+                    @foreach (var move in Model.pokemon.Moves.Where(x => (x.Move.Name.Replace("-", " ").Capitalize()) != Model.moves[0]))
+                    {
+                        @Html.Raw(GetOptions(move))
+                    }
+                </select>
+                <label for="move2">&emsp; Move 2</label>
+                <select asp-for="@Model.moves[1]" id="move2">
+                    @if (string.IsNullOrEmpty(Model.moves[1]))
+                    {
+                        <option value=@Model.moves[1]>N/A</option>
+                    }
+                    else
+                    {
+                        <option value=@Model.moves[1]>@Model.moves[1]</option>
+                        <option value="@null">N/A</option>
+                    }
+                    @foreach (var move in Model.pokemon.Moves.Where(x => (x.Move.Name.Replace("-", " ").Capitalize()) != Model.moves[1]))
+                    {
+                        @Html.Raw(GetOptions(move))
+                    }
+                </select>
+                <br />
+                <br />
+                <label for="move3">Move 3</label>
+                <select asp-for="@Model.moves[2]" id="move3">
+                    @if (string.IsNullOrEmpty(Model.moves[2]))
+                    {
+                        <option value=@Model.moves[2]>N/A</option>
+                    }
+                    else
+                    {
+                        <option value=@Model.moves[2]>@Model.moves[2]</option>
+                        <option value="@null">N/A</option>
+                    }
+                    @foreach (var move in Model.pokemon.Moves.Where(x => (x.Move.Name.Replace("-", " ").Capitalize()) != Model.moves[2]))
+                    {
+                        @Html.Raw(GetOptions(move))
+                    }
+                </select>
+                <label for="move4">&emsp; Move 4</label>
+                <select asp-for="@Model.moves[3]" id="move4">
+                    @if(string.IsNullOrEmpty(Model.moves[3]))
+                    {
+                        <option value=@Model.moves[3]>N/A</option>
+                    } else
+                    {
+                        <option value=@Model.moves[3]>@Model.moves[3]</option>
+                        <option value="@null">N/A</option>
+                    }
+                    @foreach (var move in Model.pokemon.Moves.Where(x => (x.Move.Name.Replace("-", " ").Capitalize()) != Model.moves[3]))
+                    {
+                        @Html.Raw(GetOptions(move))
+                    }
+                </select>
+                <br />
+                <br />
+                <br />
+                <button type="submit" asp-action="SaveEdit">Save</button>
+            </form>
+        }
+    </div>
 </body>
+<style>
+    .art {
+        border: 5px inset #5555;
+    }
+</style>

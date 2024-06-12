@@ -1,4 +1,5 @@
 ﻿@using System.Drawing
+@using static AppModels.Models.StringExtensions
 @model List<AppModels.Models.yourPokemon>
 @{
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
@@ -33,16 +34,14 @@
             <table>
                 <tr>
                     <th>Artwork</th>
-                    <th>(Nick)Name</th>
+                    <th>Name</th>
                     <th>Type(s)</th>
                     <th>Ability</th>
+                    <th>Moves</th>
                     <th>IVs</th>
                     <th>Edit Details</th>
                     <th>Remove</th>
                 </tr>
-                @{
-                    int i = 0;
-                }
                 @foreach (var pokemon in Model)
                 {
                     string spriteURL = pokemon.pokemon.Sprites.Other.OfficialArtwork.FrontDefault;
@@ -50,7 +49,12 @@
                     {
                         spriteURL = pokemon.pokemon.Sprites.Other.OfficialArtwork.FrontShiny;
                     }
-                    var tdContent = GetTd(pokemon.pokemon.Id, spriteURL, (pokemon.pokemon.Name[0].ToString().ToUpper() + pokemon.pokemon.Name.Substring(1)));
+                    string pokename = (pokemon.pokemon.Name.Capitalize());
+                    if (!string.IsNullOrEmpty(pokemon.nickname))
+                    {
+                        pokename = pokemon.nickname;
+                    }
+                    var tdContent = GetTd(pokemon.pokemon.Id, spriteURL, pokename);
                     var typeColor1 = GetTypeColorStyle(TypeColors, pokemon.pokemon.Types[0].Type.Name);
                     var typeColor2 = "transparent";
                     var imgUrl1 = Url.Content($"~/images/{pokemon.pokemon.Types[0].Type.Name.ToLower()}.png");
@@ -72,9 +76,33 @@
                                 var imgUrl = Url.Content($"~/images/{pokemon.pokemon.Types[0].Type.Name.ToLower()}.png");
                             }
                             <img src="@imgUrl1" height="30" />
-                            <img src="@imgUrl2" height="30" />
+                            @if (pokemon.pokemon.Types.Count >= 2)
+                            {
+                                <img src="@imgUrl2" height="30" />
+                            }
                         </td>
-                        <td>@(pokemon.ability[0].ToString().ToUpper() + pokemon.ability.Substring(1))</td>
+                        <td>@(pokemon.ability.Capitalize())</td>
+                        <td>
+                            @if(!pokemon.moves.All(x => x == null))
+                            {
+                                @foreach (var move in pokemon.moves)
+                                {
+                                    if (move is not null)
+                                    {
+                                        <p> @($"- {move}")</p>
+                                    } else
+                                    {
+                                        <p> - </p>
+                                    }
+                                }
+                            } else
+                            {
+                                <p>-</p>
+                                <p>-</p>
+                                <p>-</p>
+                                <p>-</p>
+                            }
+                        </td>
                         <td>
                             @foreach (var value in pokemon.IVs)
                             {
@@ -83,7 +111,7 @@
                         </td>
                         <td>
                             <form asp-action='EditPoke'>
-                                <input type='hidden' name='id' value='@i' />
+                                <input type='hidden' name='id' value='@pokemon.teamPosition' />
                                 <button type='submit' style='border: none; background: none; padding: 0;'>
                                     <img src='~/images/edit.png' height='40' />
                                 </button>
@@ -92,7 +120,7 @@
                         </td>
                         <td>
                             <form method="post" asp-action='RemoveFromTeam'>
-                                <input type='hidden' name='id' value='@i' />
+                                <input type='hidden' name='id' value='@pokemon.teamPosition' />
                                 <input type='hidden' name='returnPage' value='team' />
                                 <button type='submit' style='border: none; background: none; padding: 0;'>
                                     <img src='~/images/delete_icon.png' height='40' />
@@ -100,7 +128,6 @@
                             </form>
                         </td>
                     </tr>
-                    i++;
                 }
             </table>
         </div>

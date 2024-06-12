@@ -5,6 +5,7 @@ using PokeApiNet;
 using System.Drawing;
 using Newtonsoft.Json;
 using AppModels.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace MyTotallySelfMadeWebApp.Controllers;
 public class HomeController : Controller
@@ -138,7 +139,7 @@ public class HomeController : Controller
             yourPoke.pokemon = poke;
             yourPoke.ability = poke.Abilities.FirstOrDefault().Ability.Name;
             var rnd = new Random();
-            if (rnd.Next(1, 100) == 1)
+            if (rnd.Next(0, 100) == 1)
             {
                 yourPoke.shiny = true;
             }
@@ -152,6 +153,8 @@ public class HomeController : Controller
             { "Speed", rnd.Next(0,31) }
         };
             yourPoke.IVs = IVs;
+            yourPoke.teamPosition = team.Count;
+            yourPoke.moves = new List<string> { "", "", "", "" };
             team.Add(yourPoke);
             _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(team));
         }
@@ -164,7 +167,14 @@ public class HomeController : Controller
         var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
         List<yourPokemon> team;
         team = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
-        team.Remove(team[id]);
+        if (team.Count > id)
+            team.Remove(team[id]);
+        int i = 0;
+        foreach (var pokemon in team)
+        {
+            team[i].teamPosition = i;
+            i++;
+        }
         _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(team));
         switch (returnPage)
         {
@@ -184,13 +194,31 @@ public class HomeController : Controller
     public IActionResult EditPoke(int id)
     {
         var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
-        List<yourPokemon> yourPoke = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
-        return View(yourPoke[id]);
+        List<yourPokemon> yourPokes = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
+        var TypeColors = _httpContextAccessor.HttpContext.Session.GetString("colors");
+        ViewBag.TypeColors = JsonConvert.DeserializeObject<Dictionary<string, Color>>(TypeColors);
+        return View(yourPokes[id]);
     }
 
-    public IActionResult SaveEdit()
+    public IActionResult SaveEdit(yourPokemon model)
     {
-
+        var teamJson = _httpContextAccessor.HttpContext.Session.GetString("team");
+        List<yourPokemon> yourPokes = JsonConvert.DeserializeObject<List<yourPokemon>>(teamJson);
+        var selectedPoke = yourPokes[model.teamPosition];
+        if (model.nickname == "")
+        {
+            selectedPoke.nickname = null;
+        }
+        else
+        {
+            selectedPoke.nickname = model.nickname;
+        }
+        if (model.moves.Count == 4)
+        {
+            for (int i = 0; i < 4; i++)
+                selectedPoke.moves[i] = model.moves[i];
+        }
+        _httpContextAccessor.HttpContext.Session.SetString("team", JsonConvert.SerializeObject(yourPokes));
         return RedirectToAction("Team");
     }
 
