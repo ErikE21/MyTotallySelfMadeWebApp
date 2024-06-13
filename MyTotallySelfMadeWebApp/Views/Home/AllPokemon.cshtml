@@ -4,6 +4,9 @@
 @{
     var TypeColors = ViewBag.TypeColors as Dictionary<string, Color>;
     var routeId = (int)ViewData["id"];
+    string TeamCap = null;
+    if (ViewData["TeamCap"] is not null)
+    { TeamCap = ViewData["TeamCap"].ToString(); }
     if (routeId == 0) { routeId = 1; }
     var team = Model.yourPokemon;
 }
@@ -103,12 +106,17 @@
                         </tr>
                         i++;
                     }
+                    @if (!string.IsNullOrEmpty(TeamCap))
+                    {
+                    <tr style="background-color:red">
+                        <td colspan="4" style="text-align:center">@TeamCap</td>
+                    </tr>
+                    }
                 </table>
             }
         </div>
         <div class="table-container" style="border-collapse: collapse;width: auto;">
             <table>
-
                 <tr>
                     <th class="dex-column">Dex Nr.</th>
                     <th>Artwork</th>
@@ -155,12 +163,14 @@
                             </form>
                         </td>
                     </tr>
+
                 }
             </table>
 
         </div>
         <div style="display: inline-block">
             <form>
+                <input hidden asp-route-asc="" />
                 @if (routeId <= 1)
                 {
                     <button asp-route-id="1" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>1</u></button>
@@ -216,7 +226,7 @@
                     }
                     <a>...</a>
                 }
-                @if (routeId == 41)
+                @if (routeId >= 41)
                 {
                     <button asp-route-id="41" asp-action="GetPokemonData" class="button" style="background-color:grey"><u>41</u></button>
                 }

@@ -26,7 +26,7 @@
     }
     @if (Model.Count == 0 || Model is null)
     {
-        <h1>Your team has no pokemon</h1>
+        <h1 style="text-align:center">Your team has no pokemon</h1>
     }
     else
     {
@@ -83,19 +83,18 @@
                         </td>
                         <td>@(pokemon.ability.Capitalize())</td>
                         <td>
-                            @if(!pokemon.moves.All(x => x == null))
+                            @if (!pokemon.moves.All(x => x == null))
                             {
-                                @foreach (var move in pokemon.moves)
+                                @foreach (var move in pokemon.moves.Where(x => !string.IsNullOrEmpty(x)))
                                 {
-                                    if (move is not null)
-                                    {
-                                        <p> @($"- {move}")</p>
-                                    } else
-                                    {
-                                        <p> - </p>
-                                    }
+                                    <p> @($"- {move}")</p>
                                 }
-                            } else
+                                @foreach (var move in pokemon.moves.Where(x => string.IsNullOrEmpty(x)))
+                                {
+                                    <p> @($"- {move}")</p>
+                                }
+                            }
+                            else
                             {
                                 <p>-</p>
                                 <p>-</p>
