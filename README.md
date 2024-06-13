@@ -1,4 +1,4 @@
-# Pokemon Teambuilder and editor
+# Pokemon Teambuilder and Editor
 A Project for me to use my imagination and put my coding skills to the test.
 
 The Api wrapper was not made by me!
